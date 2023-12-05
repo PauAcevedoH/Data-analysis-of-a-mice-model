@@ -1,0 +1,107 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+import scipy.stats as stats
+from scipy.stats import f_oneway
+
+archivo_excel = 'Consumo_Wildtype (1).xlsx'
+
+df = pd.read_excel(archivo_excel, sheet_name='Resumen datos')
+
+control_leche = df.iloc[:, 2:6]
+binge_leche = df.iloc[:, 9:13]
+
+control_comida = df.iloc[:, 16:20]
+binge_comida = df.iloc[:, 23:27]
+
+control_peso = df.iloc[:, 30:34]
+binge_peso = df.iloc[:, 37:41]
+
+días = df.iloc[:, 0]
+control_leche[(control_leche < 0) | (control_leche > 1.3)] = None
+binge_leche[(binge_leche < 0) | (binge_leche > 2)] = None
+
+binge_comida [(binge_comida < 0)] = None
+control_comida [(control_comida < 0)] = None
+
+control_peso[(control_peso < 0) | (control_peso > 1000)] = None
+binge_peso[(control_peso < 0) | (control_peso > 1000)] = None
+
+promedio_control = control_leche.mean(axis=1)
+promedio_binge = binge_leche.mean(axis=1)
+promedio_control_comida = control_comida.mean(axis=1)
+promedio_binge_comida = binge_comida.mean(axis=1)
+promedio_control_peso = control_peso.mean(axis=1)
+promedio_binge_peso = binge_peso.mean(axis=1)
+
+print(promedio_binge_peso, promedio_control_peso)
+
+result_anova1 = stats.f_oneway(promedio_binge, promedio_control)
+result_anova2 = stats.f_oneway(promedio_binge_comida, promedio_control_comida)
+result_anova3 = stats.f_oneway(promedio_binge_peso, promedio_control_peso)
+
+print("Resultados ANOVA para Grupo1:")
+print("Estadística F:", result_anova1.statistic)
+print("Valor p:", result_anova1.pvalue)
+print("Resultados ANOVA para Grupo2:")
+print("Estadística F:", result_anova2.statistic)
+print("Valor p:", result_anova2.pvalue)
+print("Resultados ANOVA para Grupo3:")
+print("Estadística F:", result_anova3.statistic)
+print("Valor p:", result_anova3.pvalue)
+
+if result_anova1.pvalue < 0.05:
+    print("Hay diferencias significativas entre al menos dos grupos en el primer conjunto de datos.")
+else:
+    print("No hay evidencia suficiente para rechazar la hipótesis nula en el primer conjunto de datos.")
+
+if result_anova2.pvalue < 0.05:
+    print("Hay diferencias significativas entre al menos dos grupos en el segundo conjunto de datos.")
+else:
+    print("No hay evidencia suficiente para rechazar la hipótesis nula en el segundo conjunto de datos.")
+
+if result_anova3.pvalue < 0.05:
+    print("Hay diferencias significativas entre al menos dos grupos en el tercer conjunto de datos.")
+else:
+    print("No hay evidencia suficiente para rechazar la hipótesis nula en el tercer conjunto de datos.")
+
+plt.subplot(3, 1, 1)
+plt.plot(días, promedio_control, label='control')
+plt.plot(días, promedio_binge, label='binge')
+
+plt.xlabel('Días')
+plt.ylabel('consumo de alimento palatabel (g)')
+plt.title('Leche consumida')
+plt.legend()  
+
+plt.xticks(np.arange(1, 44, 1))
+plt.yticks(np.arange(0,1.5 , 0.2))
+
+plt.subplot(3, 1, 2)
+plt.plot(días, promedio_control_comida, label='control')
+plt.plot(días, promedio_binge_comida, label='binge')
+
+plt.xlabel('Días')
+plt.ylabel('Cosumo comida Chos (g)')
+plt.title('Ingesta de Comida')
+plt.legend()  
+
+plt.xticks(np.arange(1, 44, 1))
+plt.yticks(np.arange(0, 0.8, 0.1))
+
+plt.subplot(3, 1, 3)
+plt.plot(días, promedio_control_peso, label='control')
+plt.plot(días, promedio_binge_peso, label='binge')
+
+plt.xlabel('Días')
+plt.ylabel('Peso (g)')
+plt.title('Peso animales')
+plt.legend()  
+
+#Rangos
+plt.xticks(np.arange(1, 42, 1))
+plt.yticks(np.arange(0, 32, 5))
+
+plt.tight_layout()
+
+plt.show()
